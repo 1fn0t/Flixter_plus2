@@ -28,7 +28,7 @@ class CastFragment(private val showId: String?) : Fragment() {
     }
 
     private fun loadCastAdapter(castRv: RecyclerView) {
-        lateinit var models: List<CastMember>
+//        lateinit var models: List<CastMember>
         val client = AsyncHttpClient()
         client[
                 "https://api.themoviedb.org/3/tv/"+ showId + "/credits?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed&language=en-US",
@@ -44,9 +44,42 @@ class CastFragment(private val showId: String?) : Fragment() {
 
                         val gson = Gson()
                         val arrayCastType = object : TypeToken<List<CastMember>>() {}.type
-                        models = gson.fromJson(resultsJSON, arrayCastType)
-                        castRv.adapter = CastRVA(models)
+                        var models : List<CastMember> = gson.fromJson(resultsJSON, arrayCastType)
                         Log.d("CastFragment1", "response successful")
+
+                        for (model in models) {
+                            client[
+                                    "https://api.themoviedb.org/3/person/"+ model.memberId + "/images?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed",
+                                    object : JsonHttpResponseHandler()
+
+                                    {
+                                        override fun onSuccess(
+                                            statusCode: Int,
+                                            headers: Headers,
+                                            json: JsonHttpResponseHandler.JSON
+                                        ) {
+                                            val resultsJSON = json.jsonObject.get("profiles").toString()
+
+                                            val gson = Gson()
+                                            val arrayCastType = object : TypeToken<List<CastMember>>() {}.type
+                                            val temp :List<CastMember> = gson.fromJson(resultsJSON, arrayCastType)
+                                            model.putPhoto(temp[0].memberPhoto)
+                                            Log.d("CastFragment2", "response successful")
+                                        }
+
+                                        override fun onFailure(
+                                            statusCode: Int,
+                                            headers: Headers?,
+                                            errorResponse: String,
+                                            t: Throwable?
+                                        ) {
+                                            t?.message?.let {
+                                                Log.e("CastFragment2", errorResponse)
+                                            }
+                                        }
+                                    }]
+                        }
+                        castRv.adapter = CastRVA(models)
                     }
 
                     override fun onFailure(
@@ -60,36 +93,6 @@ class CastFragment(private val showId: String?) : Fragment() {
                         }
                     }
                 }]
-//        client[
-//                "https://api.themoviedb.org/3/tv/"+ showId + "/credits?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed&language=en-US",
-//                object : JsonHttpResponseHandler()
-//
-//                {
-//                    override fun onSuccess(
-//                        statusCode: Int,
-//                        headers: Headers,
-//                        json: JsonHttpResponseHandler.JSON
-//                    ) {
-//                        val resultsJSON = json.jsonObject.get("cast").toString()
-//
-//                        val gson = Gson()
-//                        val arrayCastType = object : TypeToken<List<CastMember>>() {}.type
-//                        models = gson.fromJson(resultsJSON, arrayCastType)
-//                        Log.d("CastFragment2", "response successful")
-//                    }
-//
-//                    override fun onFailure(
-//                        statusCode: Int,
-//                        headers: Headers?,
-//                        errorResponse: String,
-//                        t: Throwable?
-//                    ) {
-//                        t?.message?.let {
-//                            Log.e("CastFragment2", errorResponse)
-//                        }
-//                    }
-//                }]
-//        castRv.adapter = CastRVA(models)
     }
 
 }

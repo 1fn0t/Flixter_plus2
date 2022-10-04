@@ -11,6 +11,11 @@ class CastMember {
     var memberName: String? = null
 
 
-    @SerializedName("h")
+    @SerializedName("file_path")
     var memberPhoto: String? = null
+
+    public fun putPhoto(path: String?) {
+        memberPhoto = path
+    }
 }
+
